@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <title>题目详情 | 我的 OJ 平台</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/oj.css">
+</head>
+<body>
+<header class="app-header">
+    <div class="layout-container app-header__inner">
+        <a class="brand" href="index.html">我的 OJ 平台</a>
+        <div class="app-header__actions">
+            <a class="nav-link" href="index.html">返回列表</a>
+            <a class="btn btn-ghost" href="logout">注销</a>
+        </div>
+    </div>
+</header>
+
+<section class="page-hero page-hero--compact">
+    <div class="layout-container">
+        <p class="eyebrow">Problem Detail</p>
+        <h1 id="problemTitle">加载中...</h1>
+        <p id="problemLevel">难度 --</p>
+    </div>
+</section>
+
+<main class="page-content">
+    <section class="page-section">
+        <div class="layout-container">
+            <div class="card" id="problemDesc">
+                <div class="card-header" style="margin-bottom:1rem;">
+                    <h2 class="card-title">题目描述</h2>
+                </div>
+                <pre id="problemDescription" style="white-space:pre-wrap; margin:0;"></pre>
+            </div>
+        </div>
+    </section>
+    <section class="page-section">
+        <div class="layout-container">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">代码编辑器</h2>
+                </div>
+                <div id="editor" class="code-editor"></div>
+                <div style="margin-top:1.5rem; display:flex; gap:1rem;">
+                    <button class="btn btn-primary" id="submitButton">提交并运行</button>
+                </div>
+            </div>
+        </div>
+    </section>
+    <section class="page-section">
+        <div class="layout-container">
+            <div class="card">
+                <div class="card-header">
+                    <h2 class="card-title">运行结果</h2>
+                </div>
+                <div class="result-panel" id="problemResult">尚未运行</div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer class="page-footer">
+    <div class="layout-container">
+        <p>&copy; 参考资料</p>
+    </div>
+</footer>
+
+<script src="js/jquery.min.js"></script>
+<script src="js/common.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/ace/1.2.9/ace.js"></script>
+<script src="https://cdn.bootcdn.net/ajax/libs/ace/1.2.9/ext-language_tools.js"></script>
+<script>
+    (function () {
+        const titleEl = document.querySelector("#problemTitle");
+        const levelEl = document.querySelector("#problemLevel");
+        const descEl = document.querySelector("#problemDescription");
+        const resultEl = document.querySelector("#problemResult");
+        const submitButton = document.querySelector("#submitButton");
+        let currentProblemId = null;
+
+        function initEditor() {
+            const editor = ace.edit("editor");
+            editor.setOptions({
+                enableBasicAutocompletion: true,
+                enableSnippets: true,
+                enableLiveAutocompletion: true
+            });
+            editor.setTheme("ace/theme/twilight");
+            editor.session.setMode("ace/mode/java");
+            editor.setFontSize(16);
+            return editor;
+        }
+
+        const editor = initEditor();
+
+        function renderProblem(problem) {
+            currentProblemId = problem.id;
+            titleEl.textContent = problem.title;
+            levelEl.textContent = "难度：" + problem.level;
+            descEl.textContent = problem.description || "暂无描述";
+            editor.setValue(problem.templateCode || "", -1);
+        }
+
+        function fetchProblem() {
+            OJ.request({
+                url: "problem" + location.search,
+                success: renderProblem
+            });
+        }
+
+        function runCode() {
+            if (!currentProblemId) {
+                return;
+            }
+            resultEl.textContent = "正在编译运行，请稍候...";
+            OJ.request({
+                url: "compile",
+                method: "POST",
+                data: {
+                    id: currentProblemId,
+                    code: editor.getValue()
+                },
+                success(data) {
+                    if (data && data.error === 0) {
+                        resultEl.textContent = data.stdout || "执行成功，无输出。";
+                    } else {
+                        resultEl.textContent = data && data.reason ? data.reason : "运行失败。";
+                    }
+                },
+                error() {
+                    resultEl.textContent = "运行失败，请检查登录状态或稍后重试。";
+                }
+            });
+        }
+
+        submitButton.addEventListener("click", runCode);
+
+        OJ.ensureSession(fetchProblem);
+    })();
+</script>
+</body>
+</html>

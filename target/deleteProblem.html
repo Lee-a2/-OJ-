@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <title>删除题目 | 我的 OJ 平台</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/oj.css">
+</head>
+<body>
+<header class="app-header">
+    <div class="layout-container app-header__inner">
+        <a class="brand" href="index.html">我的 OJ 平台</a>
+        <div class="app-header__actions">
+            <a class="nav-link" href="function.html">管理中心</a>
+            <a class="btn btn-ghost" href="logout">注销</a>
+        </div>
+    </div>
+</header>
+
+<section class="page-hero page-hero--compact">
+    <div class="layout-container">
+        <p class="eyebrow">Admin Console</p>
+        <h1>删除题目</h1>
+        <p>谨慎删除，删除后题目及其提交记录将无法恢复。</p>
+    </div>
+</section>
+
+<main class="page-content">
+    <section class="page-section">
+        <div class="layout-container">
+            <div class="card table-card">
+                <div class="card-header">
+                    <h2 class="card-title">题目列表</h2>
+                    <button class="btn btn-primary" id="refreshProblems">刷新</button>
+                </div>
+                <table>
+                    <thead>
+                    <tr>
+                        <th>编号</th>
+                        <th>标题</th>
+                        <th>难度</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody id="problemTable"></tbody>
+                </table>
+                <div class="empty-state" id="emptyState" style="display:none;">暂无题目。</div>
+                <div id="deleteFeedback" class="form-feedback" style="margin-top:1.5rem;"></div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer class="page-footer">
+    <div class="layout-container">
+        <p>&copy; <a href="https://blog.csdn.net/weixin_49830664?spm=1000.2115.3001.5343" target="_blank">参考资料</a></p>
+    </div>
+</footer>
+
+<script src="js/jquery.min.js"></script>
+<script src="js/common.js"></script>
+<script>
+    (function () {
+        const tableBody = document.querySelector("#problemTable");
+        const emptyState = document.querySelector("#emptyState");
+        const refreshButton = document.querySelector("#refreshProblems");
+        const feedback = document.querySelector("#deleteFeedback");
+
+        function showFeedback(message, type) {
+            feedback.textContent = message;
+            feedback.className = "form-feedback form-feedback--show form-feedback--" + type;
+        }
+
+        function render(list) {
+            tableBody.innerHTML = "";
+            if (!list || list.length === 0) {
+                emptyState.style.display = "block";
+                return;
+            }
+            emptyState.style.display = "none";
+            list.forEach(problem => {
+                const row = document.createElement("tr");
+                row.innerHTML = `
+                    <td>${problem.id}</td>
+                    <td><a href="problemDetail.html?id=${problem.id}" target="_blank">${problem.title}</a></td>
+                    <td>${problem.level}</td>
+                    <td></td>
+                `;
+                const actionCell = row.lastElementChild;
+                const button = document.createElement("button");
+                button.className = "btn btn-primary";
+                button.textContent = "删除";
+                button.addEventListener("click", () => handleDelete(problem.id));
+                actionCell.appendChild(button);
+                tableBody.appendChild(row);
+            });
+        }
+
+        function handleDelete(id) {
+            showFeedback("正在删除题目 #" + id + "...", "success");
+            OJ.request({
+                url: "deleteProblem",
+                method: "POST",
+                data: {id},
+                success(result) {
+                    if (result) {
+                        showFeedback("题目已删除。", "success");
+                        fetchProblems();
+                    } else {
+                        showFeedback("删除失败，服务器未返回成功。", "error");
+                    }
+                },
+                error() {
+                    showFeedback("删除失败，请稍后重试。", "error");
+                }
+            });
+        }
+
+        function fetchProblems() {
+            OJ.request({
+                url: "problem",
+                success: render
+            });
+        }
+
+        refreshButton.addEventListener("click", fetchProblems);
+        OJ.ensureAdmin(fetchProblems);
+    })();
+</script>
+</body>
+</html>

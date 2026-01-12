@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <title>题库 | 我的 OJ 平台</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/oj.css">
+</head>
+<body>
+<header class="app-header">
+    <div class="layout-container app-header__inner">
+        <a class="brand" href="index.html">我的 OJ 平台</a>
+        <div class="app-header__actions" id="navActions">
+            <a class="btn btn-ghost" href="logout">注销</a>
+        </div>
+    </div>
+</header>
+
+<section class="page-hero">
+    <div class="layout-container">
+        <p class="eyebrow">Online Judge</p>
+        <h1>实时刷题，提升算法实力</h1>
+        <p>精选题库支持在线编辑、编译、测试，管理员可在后台维护题目与用户。</p>
+        <div style="margin-top: 1.5rem;">
+            <a class="btn btn-primary" href="function.html">进入管理后台</a>
+        </div>
+    </div>
+</section>
+
+<main class="page-content">
+    <section class="page-section">
+        <div class="layout-container">
+            <div class="card table-card">
+                <div class="card-header">
+                    <h2 class="card-title">题目列表</h2>
+                    <button class="btn btn-primary" id="refreshButton">刷新列表</button>
+                </div>
+                <div class="table-responsive">
+                    <table>
+                        <thead>
+                        <tr>
+                            <th>编号</th>
+                            <th>标题</th>
+                            <th>难度</th>
+                        </tr>
+                        </thead>
+                        <tbody id="problemTable"></tbody>
+                    </table>
+                </div>
+                <div class="empty-state" id="emptyState" style="display:none;">暂无题目，请稍后刷新。</div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer class="page-footer">
+    <div class="layout-container">
+        <p>&copy; <a href="https://blog.csdn.net/weixin_49830664?spm=1000.2115.3001.5343" target="_blank">参考资料</a></p>
+    </div>
+</footer>
+
+<script src="js/jquery.min.js"></script>
+<script src="js/common.js"></script>
+<script src="js/app.js"></script>
+<script>
+    (function () {
+        const tableBody = document.querySelector("#problemTable");
+        const emptyState = document.querySelector("#emptyState");
+        const refreshButton = document.querySelector("#refreshButton");
+        const navActions = document.querySelector("#navActions");
+
+        function renderProblems(list) {
+            tableBody.innerHTML = "";
+            if (!list || list.length === 0) {
+                emptyState.style.display = "block";
+                return;
+            }
+            emptyState.style.display = "none";
+            list.forEach(problem => {
+                const row = document.createElement("tr");
+                const idTd = document.createElement("td");
+                idTd.textContent = problem.id;
+                const titleTd = document.createElement("td");
+                const link = document.createElement("a");
+                link.textContent = problem.title;
+                link.href = "problemDetail.html?id=" + problem.id;
+                link.target = "_blank";
+                titleTd.appendChild(link);
+                const levelTd = document.createElement("td");
+                levelTd.textContent = problem.level;
+                row.appendChild(idTd);
+                row.appendChild(titleTd);
+                row.appendChild(levelTd);
+                tableBody.appendChild(row);
+            });
+        }
+
+        function fetchProblems() {
+            OJ.request({
+                url: "problem",
+                success: renderProblems
+            });
+        }
+
+        function mountAdminEntry(user) {
+            if (user && user.isAdmin) {
+                const adminLink = document.createElement("a");
+                adminLink.href = "function.html";
+                adminLink.className = "nav-link";
+                adminLink.textContent = "管理中心";
+                navActions.insertBefore(adminLink, navActions.firstChild);
+            }
+        }
+
+        refreshButton.addEventListener("click", fetchProblems);
+
+        OJ.ensureSession(mountAdminEntry);
+        fetchProblems();
+    })();
+</script>
+</body>
+</html>

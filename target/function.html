@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="utf-8">
+    <title>管理中心 | 我的 OJ 平台</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/oj.css">
+</head>
+<body>
+<header class="app-header">
+    <div class="layout-container app-header__inner">
+        <a class="brand" href="index.html">我的 OJ 平台</a>
+        <div class="app-header__actions">
+            <a class="nav-link" href="index.html">返回题库</a>
+            <a class="btn btn-ghost" href="logout">注销</a>
+        </div>
+    </div>
+</header>
+
+<section class="page-hero page-hero--compact">
+    <div class="layout-container">
+        <p class="eyebrow">Admin Console</p>
+        <h1>平台管理功能</h1>
+        <p>快速跳转到常用后台页面，维护题目与用户信息。</p>
+    </div>
+</section>
+
+<main class="page-content">
+    <section class="page-section">
+        <div class="layout-container">
+            <div class="card">
+                <div class="card-header">
+                    <p class="eyebrow">快捷入口</p>
+                    <h2 class="card-title">后台功能面板</h2>
+                    <p class="card-description">按业务模块分组，快速定位需要处理的任务。</p>
+                </div>
+                <div id="admin-actions" class="card-grid" aria-live="polite">
+                    <noscript>请启用 JavaScript 以查看功能列表。</noscript>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer class="page-footer">
+    <div class="layout-container">
+        <p>&copy; <a href="https://blog.csdn.net/weixin_49830664?spm=1000.2115.3001.5343" target="_blank">参考资料</a></p>
+    </div>
+</footer>
+
+<script src="js/jquery.min.js"></script>
+<script src="js/common.js"></script>
+<script>
+    OJ.ensureAdmin();
+
+    (function renderAdminActions() {
+        const adminActions = [
+            {
+                id: '01',
+                title: '新增题目',
+                desc: '录入题干、样例与答案，扩充题库。',
+                href: 'addProblem.html',
+                category: '题目管理',
+                accent: 'success'
+            },
+            {
+                id: '02',
+                title: '删除题目',
+                desc: '下线错误或过期题目，保持题库质量。',
+                href: 'deleteProblem.html',
+                category: '题目管理',
+                accent: 'warning'
+            },
+            {
+                id: '03',
+                title: '删除用户',
+                desc: '移除违规或不再使用的账户。',
+                href: 'deleteUser.html',
+                category: '用户管理',
+                accent: 'danger'
+            },
+            {
+                id: '04',
+                title: '添加用户',
+                desc: '为新成员创建访问权限。',
+                href: 'addUser.html',
+                category: '用户管理',
+                accent: 'primary'
+            },
+            {
+                id: '05',
+                title: '查看题目列表',
+                desc: '审阅现有题目与判题状态。',
+                href: 'index.html',
+                category: '题库概览',
+                accent: 'info'
+            },
+            {
+                id: '06',
+                title: '注册新用户',
+                desc: '跳转注册页，便于快速创建账户。',
+                href: 'register.html',
+                category: '用户管理',
+                accent: 'primary'
+            },
+            {
+                id: '07',
+                title: '登录入口',
+                desc: '检查登录态或为他人演示登录流程。',
+                href: 'login.html',
+                category: '通用入口',
+                accent: 'info'
+            }
+        ];
+
+        const grid = document.getElementById('admin-actions');
+        if (!grid) return;
+
+        if (!Array.isArray(adminActions) || adminActions.length === 0) {
+            grid.innerHTML = '<p class="text-muted">暂无可用功能。</p>';
+            return;
+        }
+        const fragment = document.createDocumentFragment();
+
+        adminActions.forEach(action => {
+            const card = document.createElement('article');
+            card.className = 'action-card';
+            card.innerHTML = `
+                <header>
+                    <span class="action-id">${action.id}</span>
+                    <span class="action-category action-category--${action.accent}">${action.category}</span>
+                    <h3>${action.title}</h3>
+                    <p>${action.desc}</p>
+                </header>
+                <footer>
+                    <a class="btn btn-primary" href="${action.href}">进入功能</a>
+                </footer>
+            `;
+            fragment.appendChild(card);
+        });
+
+        grid.appendChild(fragment);
+    })();
+</script>
+</body>
+</html>
